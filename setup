@@ -1,0 +1,116 @@
+#!/bin/bash
+
+# Claude Code 环境变量配置脚本 for macOS
+# 作者: AI助手
+# 版本: 1.0
+
+echo "🚀 Claude Code 环境变量配置脚本"
+echo "=================================="
+echo ""
+
+# 检测当前使用的 shell
+CURRENT_SHELL=$(basename "$SHELL")
+echo "🔍 检测到当前 Shell: $CURRENT_SHELL"
+echo ""
+
+# 获取用户输入的 Token
+echo "📝 请输入您的 ANTHROPIC_AUTH_TOKEN (以 sk- 开头):"
+read -p "Token: " AUTH_TOKEN
+
+# 验证 Token 格式
+if [[ ! $AUTH_TOKEN =~ ^sk-.+ ]]; then
+    echo "❌ Token 格式错误，应该以 sk- 开头"
+    exit 1
+fi
+
+# 设置 API 地址（默认使用主地址，如有问题可切换备用地址）
+BASE_URL="https://anyrouter.top"
+echo ""
+echo "🌐 API 地址设置:"
+echo "1. 主地址: https://anyrouter.top (推荐)"
+echo "2. 备用地址: https://pmpjfbhq.cn-nb1.rainapp.top"
+read -p "请选择 (直接回车使用主地址): " url_choice
+
+if [[ $url_choice == "2" ]]; then
+    BASE_URL="https://pmpjfbhq.cn-nb1.rainapp.top"
+fi
+
+echo "✅ 使用 API 地址: $BASE_URL"
+echo ""
+
+# 环境变量配置内容
+ENV_CONFIG="
+# Claude Code 环境变量配置
+export ANTHROPIC_AUTH_TOKEN=$AUTH_TOKEN
+export ANTHROPIC_BASE_URL=$BASE_URL"
+
+# 备份现有配置文件
+backup_file() {
+    if [[ -f "$1" ]]; then
+        cp "$1" "$1.backup.$(date +%Y%m%d_%H%M%S)"
+        echo "📦 已备份 $1"
+    fi
+}
+
+echo "🔧 开始配置环境变量..."
+
+# 为 bash 配置
+if [[ -f ~/.bash_profile ]] || [[ $CURRENT_SHELL == "bash" ]]; then
+    backup_file ~/.bash_profile
+    echo "$ENV_CONFIG" >> ~/.bash_profile
+    echo "✅ 已配置 ~/.bash_profile"
+fi
+
+if [[ -f ~/.bashrc ]] || [[ $CURRENT_SHELL == "bash" ]]; then
+    backup_file ~/.bashrc
+    echo "$ENV_CONFIG" >> ~/.bashrc
+    echo "✅ 已配置 ~/.bashrc"
+fi
+
+# 为 zsh 配置 (macOS 默认)
+if [[ -f ~/.zshrc ]] || [[ $CURRENT_SHELL == "zsh" ]]; then
+    backup_file ~/.zshrc
+    echo "$ENV_CONFIG" >> ~/.zshrc
+    echo "✅ 已配置 ~/.zshrc"
+fi
+
+echo ""
+echo "🎉 环境变量配置完成!"
+echo ""
+echo "📋 下一步操作:"
+echo "1. 重启终端或执行: source ~/.${CURRENT_SHELL}rc"
+echo "2. 进入项目目录: cd your-project-folder"
+echo "3. 运行 Claude Code: claude"
+echo ""
+echo "🛠️ Claude Code 初次运行配置:"
+echo "   - 选择喜欢的主题 + Enter"
+echo "   - 确认安全须知 + Enter"  
+echo "   - 使用默认 Terminal 配置 + Enter"
+echo "   - 信任工作目录 + Enter"
+echo ""
+echo "💡 常见问题解决:"
+echo "   - 显示 Invalid API Key: 检查环境变量是否正确配置"
+echo "   - 显示 offline: 不影响使用，只是未连接到 Google"
+echo "   - fetch failed: 尝试使用备用 API 地址或检查网络代理"
+echo ""
+echo "🔄 如需切换 API 地址，重新运行此脚本即可"
+
+# 询问是否立即生效
+echo ""
+read -p "是否立即重新加载环境变量? (y/N): " reload_choice
+if [[ $reload_choice =~ ^[Yy]$ ]]; then
+    if [[ $CURRENT_SHELL == "zsh" ]]; then
+        source ~/.zshrc 2>/dev/null || echo "⚠️ 请手动执行: source ~/.zshrc"
+    elif [[ $CURRENT_SHELL == "bash" ]]; then
+        source ~/.bash_profile 2>/dev/null || source ~/.bashrc 2>/dev/null || echo "⚠️ 请手动重新加载配置文件"
+    fi
+    echo "✅ 环境变量已重新加载"
+    echo ""
+    echo "🧪 测试环境变量:"
+    echo "ANTHROPIC_AUTH_TOKEN: ${ANTHROPIC_AUTH_TOKEN:-未设置}"
+    echo "ANTHROPIC_BASE_URL: ${ANTHROPIC_BASE_URL:-未设置}"
+fi
+
+echo ""
+echo "🚀 现在可以在项目目录中直接使用 'claude' 命令了!"
+
